@@ -90,6 +90,9 @@ init([#config{} = Config, Name]) ->
 
 ready({check_in, Pid}, State) ->	
     {next_state, ready, internal_check_in(Pid, State)};
+
+ready(update, State) ->
+  update_state(State);
 ready(_Event, State) ->
     {next_state, ready, State}.
 
@@ -98,7 +101,7 @@ ready(check_out, _From, State) ->
     {{value, Pid}, Q2} = queue:out(State#state.q),	
     NewQLen = State#state.q_len - 1,
     {ok, CPid} = pooly_member:activate(Pid),    
-    {reply, {ok, CPid} , busy, State#state{q = Q2, q_len = NewQLen, out = [{CPid, Pid} |State#state.out]}};
+    {reply, {ok, CPid} , ready, State#state{q = Q2, q_len = NewQLen, out = [{CPid, Pid} |State#state.out]}};
 ready(_Event, _From, State) ->
     {next_state, ready, State}.
 
